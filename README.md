@@ -9,7 +9,7 @@ A curious creative blending **code** 💻 and **design** 🎨 to build meaningfu
 ### 💼 Who am I?
 
 🎓 CSBS undergrad @ **Thapar University**  
-🚀 Founder of **[Talkeys](https://talkeys.xyz)** – a community-first college event & networking platform  
+🚀 Building **[Talkeys](https://talkeys.xyz)** – a community-first college event & networking platform  
 🛠️ I love bringing ideas to life through sleek UI/UX and scalable front-end solutions  
 🌱 Currently exploring product thinking, startup culture & community-focused tech
 
