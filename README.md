@@ -17,6 +17,6 @@
 - [LinkedIn](https://www.linkedin.com/in/arshchatrath/)
 - [Instagram](https://www.instagram.com/arshchatrath_30) 
 - [Talkeys](https://talkeys.xyz)
-- [Mail](achatrath_be23@thapar.edu) 
+- [Email me](mailto:achatrath_be23@thapar.edu)
 
 Thanks for stopping by! 🚀
