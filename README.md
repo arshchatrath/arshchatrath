@@ -1,22 +1,31 @@
-# Hi there, I'm Arsh Chatrath 👋
+# 👋 Hi there, I'm **Arsh Chatrath**
 
-🎓 I'm a Computer Science and Business Systems undergrad at **Thapar University**, passionate about tech, product building, and solving real-world problems.
+🎓 A **CSBS undergrad** at *Thapar University*, passionate about tech, product, and solving real-world problems.
 
-🚀 Currently working on **Talkeys**, a platform to connect college communities, discover events, and enable meaningful interactions.
+🚀 Currently building **[Talkeys](https://talkeys.xyz)** — a platform that connects college communities, helps discover events, and enables meaningful interactions.
 
-🎨 I love crafting intuitive and clean **UI/UX**, and I'm constantly learning how to bridge design with functionality.
+🎨 I enjoy designing clean, intuitive **UI/UX** and constantly strive to blend creativity with functionality.
 
-💼 Beyond code, I'm actively involved in **event management**, **sponsorships**, and **community building** through societies like **ISTE** and **Enactus Thapar**.
+💼 Outside of tech, I’ve been actively involved in:
+- Event Management
+- Sponsorship & Collaborations
+- Community Building through **ISTE**, **Creative Computing Society** & **Enactus Thapar**
 
-🧠 Some things I'm exploring:
-- Product thinking & startup ecosystems
-- Frontend development & design systems
-- Marketing & student-focused innovations
+---
 
-📫 Let's connect:
-- [LinkedIn](https://www.linkedin.com/in/arshchatrath/)
-- [Instagram](https://www.instagram.com/arshchatrath_30) 
-- [Talkeys](https://talkeys.xyz)
-- [Email me](mailto:achatrath_be23@thapar.edu)
+### 📈 Currently Exploring
+- Product thinking & startup ecosystems  
+- Frontend development & design systems  
+- Marketing & student-focused innovation
 
-Thanks for stopping by! 🚀
+---
+
+### 📫 Let’s Connect
+- 🔗 [LinkedIn](https://www.linkedin.com/in/arshchatrath/)
+- 📸 [Instagram](https://www.instagram.com/arshchatrath_30)
+- 🌐 [Talkeys](https://talkeys.xyz)
+- 📧 [Email me](mailto:achatrath_be23@thapar.edu)
+
+---
+
+Thanks for visiting!
