@@ -42,4 +42,20 @@ Thanks for stopping by! 🌟
 
 ### 📬 Let's Connect
 
----
+<table>
+  <tr>
+    <td>
+      <a href="https://open.spotify.com/user/3176ufzakybufuchqpu2dfmxjvnq" target="_blank">
+        <img src="https://res.cloudinary.com/dwxqmdtjk/image/upload/v1747469838/Black_and_Grey_Modern_Simple_Torn_Music_Player_Instagram_Post_wprcre.jpg" alt="Now Playing" width="300" style="border-radius: 10px;" />
+      </a>
+    </td>
+    <td style="padding-left: 20px; vertical-align: middle; font-family: Arial, sans-serif; color: #222;">
+      <h3 style="margin: 0;">🎧 Now Playing</h3>
+      <p style="margin: 5px 0 8px 0; font-size: 18px; font-weight: bold;">Dil Toh Bacha Hai</p>
+      <p style="margin: 0 0 12px 0; font-size: 16px; color: #555;">by Rahat Fateh Ali Khan</p>
+      <p style="font-style: italic; color: #666; max-width: 250px;">
+        “Music is the universal language of mankind.”  
+      </p>
+    </td>
+  </tr>
+</table>
