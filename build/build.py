@@ -99,9 +99,8 @@ class Face:
 DISPLAY = Face("D", "bricolage-grotesque-latin.woff2", wght=760, wdth=75)
 DISPLAY_EXT = Face("Dx", "bricolage-grotesque-latin-ext.woff2", wght=760, wdth=75)  # ₹
 BODY = Face("B", "schibsted-grotesk-latin.woff2", wght=400)
+BODY_BOLD = Face("Bb", "schibsted-grotesk-latin.woff2", wght=600)
 MONO = Face("M", "fragment-mono-latin.woff2")
-
-EMOJI = "'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif"
 
 
 # ── SVG document ─────────────────────────────────────────────────────────────
@@ -333,7 +332,7 @@ def wrap(face, text, size, max_w):
 
 def header():
     H = 344
-    s = Svg(W, H, "Hi, I'm Arsh Chatrath. A curious creative blending code and design to build meaningful digital experiences.")
+    s = Svg(W, H, "Hi, I’m Arsh Chatrath. A curious creative blending code and design to build meaningful digital experiences.")
     s.card(glow=(0.86, 0.1))
     inner = W - PAD * 2
 
@@ -354,20 +353,10 @@ def header():
         "</g>",
     )
 
-    # "Hi 👋, I'm"
-    hi_y, hi_size = 116, 26
-    x = PAD
-    w_hi = BODY.width("Hi ", hi_size)
-    s.css.append(
-        "@keyframes wave{0%,60%,100%{transform:rotate(0)}10%,30%{transform:rotate(16deg)}20%,40%{transform:rotate(-8deg)}}"
-        f".wave{{transform-box:fill-box;transform-origin:70% 80%;animation:wave 2.6s ease-in-out {num(DONE + 0.4)}s infinite}}"
-    )
     s.add(
         '<g opacity="0">',
         f'<animate attributeName="opacity" from="0" to="1" begin="{num(DONE)}s" dur=".7s" fill="freeze"/>',
-        s.text(BODY, "Hi", x, hi_y, hi_size, PAPER, attrs='fill-opacity=".72"'),
-        f'<text class="wave" x="{num(x + w_hi)}" y="{hi_y}" font-size="{hi_size - 2}" font-family="{EMOJI}">👋</text>',
-        s.text(BODY, ", I’m", x + w_hi + hi_size * 1.12, hi_y, hi_size, PAPER, attrs='fill-opacity=".72"'),
+        s.text(BODY, "Hi, I’m", PAD, 116, 26, PAPER, attrs='fill-opacity=".72"'),
         "</g>",
     )
 
@@ -584,6 +573,126 @@ def chapter(i, title, theme):
         f'<circle cx="{W - 4}" cy="35" r="3" fill="{t["teal"]}"><animate attributeName="opacity" values="0;0;1" keyTimes="0;.6;1" dur="1.4s" fill="freeze"/></circle>',
     )
     s.save(f"chapter-{i}-{theme}.svg")
+
+
+# ── Who am I, and interests: numbered like the site, no emoji ───────────────
+
+WHO = [
+    # (line, the part that was bold in the old README)
+    ("CSBS undergrad @ Thapar University", "Thapar University"),
+    ("Founding Product & Growth Associate at Talkeys, a community-first college event & networking platform", "Talkeys"),
+    ("I love bringing ideas to life through sleek UI/UX and scalable front-end solutions", None),
+    ("Currently exploring product thinking, startup culture & community-focused tech", None),
+]
+
+INTERESTS = [
+    "Product Design & Strategy",
+    "UI/UX & Frontend Development",
+    "Community Building & EduTech",
+    "Marketing & Digital Experience Design",
+]
+
+
+def rise_css(s, dist=14):
+    s.css.append(
+        f"@keyframes rise{{from{{opacity:0;transform:translateY({dist}px)}}to{{opacity:1;transform:none}}}}"
+        f".rise{{animation:rise 1s {EASE_OUT} both}}"
+        f"@keyframes grow{{from{{transform:scaleX(0)}}to{{transform:scaleX(1)}}}}"
+        f".grow{{transform-box:fill-box;transform-origin:0 50%;animation:grow 1.2s {EASE_OUT} both}}"
+    )
+
+
+def rich_lines(s, text, bold, size, max_w):
+    """Wraps text whose `bold` part is set heavier and brighter; returns <tspan> runs per line."""
+    a = text.index(bold) if bold else -1
+    b = a + len(bold) if bold else -1
+    # Each word is a list of (text, is_bold) pieces, so "Talkeys," keeps its
+    # comma attached while only "Talkeys" is set bold.
+    words, pos = [], 0
+    for word in text.split(" "):
+        pieces, i = [], pos
+        for cut in sorted({pos, max(pos, min(a, pos + len(word))), max(pos, min(b, pos + len(word))), pos + len(word)}):
+            if cut > i:
+                pieces.append((text[i:cut], a <= i < b))
+                i = cut
+        words.append(pieces)
+        pos += len(word) + 1
+
+    def width(pieces):
+        return sum((BODY_BOLD if pb else BODY).width(pt, size) for pt, pb in pieces)
+
+    space = BODY.width(" ", size)
+    lines, cur, cur_w = [], [], 0.0
+    for pieces in words:
+        ww = width(pieces)
+        if cur and cur_w + space + ww > max_w:
+            lines.append(cur)
+            cur, cur_w = [], 0.0
+        cur_w += (space if cur else 0) + ww
+        cur.append(pieces)
+    lines.append(cur)
+    out = []
+    for line in lines:
+        spans = []
+        for wi, pieces in enumerate(line):
+            for pi, (pt, pb) in enumerate(pieces):
+                face = BODY_BOLD if pb else BODY
+                s.use_chars(face, pt + " ")
+                gap = " " if wi and pi == 0 else ""  # the space before a word joins its first piece
+                spans.append(
+                    f'<tspan font-family="{face.family}" fill-opacity="{"1" if pb else ".74"}">{escape(gap + pt)}</tspan>'
+                )
+        out.append("".join(spans))
+    return out
+
+
+def who():
+    size, lh, gap = 18, 27, 40
+    tx = PAD + 58
+    s = Svg(W, 10, " ".join(t + "." for t, _ in WHO))  # height set once the text is wrapped
+    rows = [rich_lines(s, t, b, size, W - tx - PAD) for t, b in WHO]
+    top = 50
+    H = top + sum(len(r) * lh for r in rows) + gap * (len(rows) - 1) + 18
+    s.h = H
+    s.card(glow=(0.95, 1.0))
+    rise_css(s)
+    y = top
+    for i, lines in enumerate(rows):
+        delay = 0.15 + i * 0.12
+        parts = [f'<g class="rise" style="animation-delay:{num(delay)}s">', s.text(MONO, f"{i + 1:02d}", PAD, y, 12, TEAL, ls=1.5)]
+        for j, spans in enumerate(lines):
+            parts.append(f'<text x="{tx}" y="{y + j * lh}" font-size="{size}" fill="{PAPER}">{spans}</text>')
+        parts.append("</g>")
+        s.add(*parts)
+        y += len(lines) * lh
+        if i < len(rows) - 1:
+            ly = y - lh + gap / 2 + 8
+            s.add(f'<line class="grow" x1="{PAD}" y1="{num(ly)}" x2="{W - PAD}" y2="{num(ly)}" stroke="{PAPER}" stroke-opacity=".09" style="animation-delay:{num(delay + 0.1)}s"/>')
+            y += gap
+    s.save("who.svg")
+
+
+def interests():
+    pad, g, th = 24, 12, 104
+    tw = (W - pad * 2 - g) / 2
+    inner = tw - 48
+    size = min(28.0, 28.0 * inner / max(DISPLAY.width(t, 28) for t in INTERESTS))
+    H = pad * 2 + th * 2 + g
+    s = Svg(W, H, "Interests & Focus: " + ", ".join(INTERESTS) + ".")
+    s.card(glow=(0.5, 1.1))
+    rise_css(s)
+    for i, name in enumerate(INTERESTS):
+        x = pad + (i % 2) * (tw + g)
+        y = pad + (i // 2) * (th + g)
+        s.add(
+            f'<g class="rise" style="animation-delay:{num(0.15 + i * 0.1)}s">',
+            f'<rect x="{num(x + 0.5)}" y="{y + 0.5}" width="{num(tw - 1)}" height="{th - 1}" rx="14" fill="{PAPER}" fill-opacity=".025" stroke="{PAPER}" stroke-opacity=".1"/>',
+            s.text(MONO, f"{i + 1:02d}", x + 24, y + 34, 12, TEAL, ls=1.5),
+            f'<line x1="{num(x + 52)}" y1="{y + 30}" x2="{num(x + tw - 24)}" y2="{y + 30}" stroke="{PAPER}" stroke-opacity=".08"/>',
+            s.text(DISPLAY, name, x + 24, y + 78, size, PAPER),
+            "</g>",
+        )
+    s.save("interests.svg")
 
 
 # ── Skills, as a set of marquees ─────────────────────────────────────────────
@@ -807,6 +916,9 @@ def neko(theme):
         f'<animate attributeName="fill" to="#3a3a3a" begin="{flip}s" dur=".3s" fill="freeze"/></rect>',
         f'<circle cx="{num(kx0 + 23)}" cy="{num(ty + 9)}" r="7" fill="{PAPER}">'
         f'<animate attributeName="cx" to="{num(kx0 + 9)}" begin="{flip}s" dur=".3s" fill="freeze"/></circle>',
+        # the old README's sign-off, on the same line as the switch
+        s.text(MONO, "Thanks for stopping by!", 0, by + 22.5, 12, PAPER if theme == "dark" else INK, ls=0.7,
+               attrs='fill-opacity=".6"'),
     )
 
     # Timeline: run in, stop, alert, wash, get tired, sleep (forever).
@@ -871,6 +983,8 @@ def main():
     for i, title in enumerate(CHAPTERS, 1):
         for theme in THEMES:
             chapter(i, title, theme)
+    who()
+    interests()
     skills()
     quote()
     now_playing()
