@@ -340,6 +340,26 @@ def header():
     T0, DUR = 0.55, 2.3
     DONE = round(T0 + DUR, 3)
 
+    # The site's big idea, in miniature: a field that starts as noise and
+    # resolves into order. Faint lines are thrown about by turbulence that
+    # dies down while the name is engraved, so they settle straight with it.
+    field = "".join(f"M-60 {y}H{W + 60}" for y in range(20, H, 13))
+    s.defs.append(
+        '<filter id="chaos" x="-10%" y="-20%" width="120%" height="140%">'
+        '<feTurbulence type="fractalNoise" baseFrequency=".006 .045" numOctaves="2" seed="11" result="n">'
+        f'<animate attributeName="baseFrequency" values=".006 .045;.009 .07;.006 .045" dur="{num(DONE)}s" fill="freeze"/>'
+        "</feTurbulence>"
+        '<feDisplacementMap in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G">'
+        f'<animate attributeName="scale" values="90;90;0" keyTimes="0;.12;1" calcMode="spline" keySplines="0 0 1 1;.3 0 .1 1" dur="{num(DONE + 0.4)}s" fill="freeze"/>'
+        "</feDisplacementMap></filter>"
+    )
+    s.add(
+        '<g clip-path="url(#card)">',
+        f'<path d="{field}" stroke="{PAPER}" stroke-opacity=".075" filter="url(#chaos)">'
+        f'<animate attributeName="stroke-opacity" values=".075;.075;.035" keyTimes="0;.6;1" dur="{num(DONE + 1.2)}s" fill="freeze"/></path>',
+        "</g>",
+    )
+
     # Status row.
     status = "OPEN TO PRODUCT & GROWTH INTERNSHIPS"
     where = "PATIALA, PUNJAB"
@@ -454,6 +474,21 @@ def header():
         y += tag_size * 1.45
     parts.append("</g>")
     s.add(*parts)
+
+    # Every so often the site's image-scan laser sweeps down the card.
+    s.defs.append(
+        '<linearGradient id="scan" x1="0" y1="0" x2="0" y2="1">'
+        f'<stop offset="0" stop-color="{TEAL}" stop-opacity="0"/><stop offset="1" stop-color="{TEAL}" stop-opacity=".16"/></linearGradient>'
+    )
+    s.add(
+        '<g clip-path="url(#card)">',
+        '<g transform="translate(0 -80)">',
+        f'<animateTransform attributeName="transform" type="translate" values="0 -80;0 -80;0 {H + 4};0 {H + 4}" '
+        f'keyTimes="0;.001;.16;1" dur="9s" begin="{num(DONE + 2.2)}s" repeatCount="indefinite"/>',
+        f'<rect y="-56" width="{W}" height="56" fill="url(#scan)"/>',
+        f'<line x1="0" y1="0" x2="{W}" y2="0" stroke="{TEAL}" stroke-opacity=".75" filter="url(#hot)"/>',
+        "</g></g>",
+    )
     s.save("header.svg")
 
 
@@ -542,7 +577,7 @@ def proof():
 
 # ── Chapter labels (drawn twice, for GitHub's light and dark themes) ─────────
 
-CHAPTERS = ["Who am I?", "Interests & Focus", "Skills & Currently Learning", "Let’s Connect"]
+CHAPTERS = ["Who am I?", "Selected Work", "Interests & Focus", "Skills & Currently Learning", "Let’s Connect"]
 THEMES = {
     "dark": {"fg": PAPER, "teal": TEAL, "line": PAPER, "line_op": ".16"},
     "light": {"fg": INK, "teal": "#0086a0", "line": INK, "line_op": ".14"},
@@ -937,12 +972,17 @@ def skills():
 # ── The quote ────────────────────────────────────────────────────────────────
 
 
-def quote():
+def quote(theme):
+    """
+    The one section without a card: the quote set big, straight on the page,
+    so the README has a moment that isn't another box.
+    """
+    t = THEMES[theme]
     first = "Design is not just what it looks like and feels like."
     second = "Design is how it works."
-    size, lh = 36, 46
-    x0, max_w = 104, W - 104 - PAD
-    words = [(w, PAPER) for w in first.split()] + [(w, TEAL) for w in second.split()]
+    size, lh = 46, 58
+    x0, max_w = 92, W - 92
+    words = [(w, t["fg"]) for w in first.split()] + [(w, t["teal"]) for w in second.split()]
     lines, cur, cur_w = [], [], 0.0
     space = DISPLAY.width(" ", size)
     for w, color in words:
@@ -954,19 +994,20 @@ def quote():
         cur.append((w, color, ww))
         cur_w += (space if len(cur) > 1 else 0) + ww
     lines.append(cur)
-    top = 78
-    H = top + lh * (len(lines) - 1) + 78
+    top = 80
+    H = top + lh * (len(lines) - 1) + 86
     s = Svg(W, H, f"“{first} {second}” Steve Jobs")
-    s.card(glow=(0.05, 0.0))
     s.css.append(
         f"@keyframes rise{{from{{transform:translateY({size}px)}}to{{transform:none}}}}"
         f".w{{animation:rise 1.1s {EASE_OUT} both}}"
+        "@keyframes draw{from{stroke-dashoffset:1}}"
+        ".draw{stroke-dasharray:1;animation:draw 1s cubic-bezier(.65,0,.35,1) both}"
     )
-    s.add(s.text(DISPLAY, "“", PAD - 4, 104, 96, TEAL))
+    s.add(s.text(DISPLAY, "“", 0, 108, 124, t["teal"]))
     k = 0
     for li, line in enumerate(lines):
         base = top + li * lh
-        s.defs.append(f'<clipPath id="l{li}"><rect x="0" y="{num(base - size)}" width="{W}" height="{num(size * 1.3)}"/></clipPath>')
+        s.defs.append(f'<clipPath id="l{li}"><rect x="0" y="{num(base - size)}" width="{W}" height="{num(size * 1.32)}"/></clipPath>')
         x = x0
         parts = [f'<g clip-path="url(#l{li})">']
         for w, color, ww in line:
@@ -975,12 +1016,154 @@ def quote():
             k += 1
         parts.append("</g>")
         s.add(*parts)
-    ay = top + lh * (len(lines) - 1) + 44
-    s.add(
-        f'<line x1="{x0}" y1="{ay - 4}" x2="{x0 + 26}" y2="{ay - 4}" stroke="{TEAL}"/>',
-        s.text(MONO, "STEVE JOBS", x0 + 38, ay, 11, PAPER, ls=2.2, attrs='fill-opacity=".6"'),
+    # a hand-drawn underline under "how it works."
+    last = lines[-1]
+    xs = [x0]
+    for _, _, ww in last:
+        xs.append(xs[-1] + ww + space)
+    ux0, ux1 = xs[2] - 2, xs[-1] - space + 4
+    uy = top + lh * (len(lines) - 1) + 14
+    span = ux1 - ux0
+    d = (
+        f"M{num(ux0)} {num(uy + 2)}"
+        f"C{num(ux0 + span * 0.3)} {num(uy - 3)} {num(ux0 + span * 0.62)} {num(uy + 3)} {num(ux1)} {num(uy - 1.5)}"
+        f"M{num(ux0 + span * 0.08)} {num(uy + 8)}C{num(ux0 + span * 0.4)} {num(uy + 4)} {num(ux0 + span * 0.7)} {num(uy + 8.5)} {num(ux1 - span * 0.12)} {num(uy + 5)}"
     )
-    s.save("quote.svg")
+    s.add(
+        f'<path class="draw" pathLength="1" d="{d}" stroke="{t["teal"]}" stroke-width="3" stroke-linecap="round" '
+        f'style="animation-delay:{num(0.35 + k * 0.06)}s"/>'
+    )
+    ay = uy + 48
+    s.add(
+        f'<line x1="{x0}" y1="{ay - 4}" x2="{x0 + 26}" y2="{ay - 4}" stroke="{t["teal"]}"/>',
+        s.text(MONO, "STEVE JOBS", x0 + 38, ay, 11, t["fg"], ls=2.2, attrs='fill-opacity=".6"'),
+    )
+    s.save(f"quote-{theme}.svg")
+
+
+# ── Selected work ────────────────────────────────────────────────────────────
+
+WORK = [
+    dict(cat="PRODUCT", title="Perplexity AI Campus Growth", link="CASE STUDY",
+         stat=("₹", "8.5", "L+"), caption="revenue · top 15 campus partners nationwide",
+         result="Segmented CS and research students by need, then ran campus activations for each",
+         stack=["Growth", "GTM", "Community"]),
+    dict(cat="PRODUCT", title="Talkeys Community Platform", link="SITE",
+         stat=("", "60", "%"), caption="lift in participation · 8,000+ users",
+         result="User research, A/B tested three engagement strategies, prioritised features by data",
+         stack=["Product", "A/B testing", "Ops"]),
+    dict(cat="AI / ML", title="SafeSpace AI", link="LIVE",
+         flow=["ESP32 WEARABLE", "VOICE", "DASS-21", "LATE FUSION", "XAI"],
+         result="73% accuracy on 500+ samples · 3rd place at the Indian-Israeli Hackathon",
+         stack=["Python", "FastAPI", "TensorFlow", "ESP32"]),
+    dict(cat="SQL / PRODUCT DESIGN", title="DataPulse", link="CODE",
+         stat=("", "20", "+"), caption="SQL query patterns on a live SQLite engine",
+         result="A SQL lab that isn’t simulated: the rows a query touches are the ones that move",
+         stack=["SQL", "SQLite", "WebAssembly"]),
+    dict(cat="AUTOMATION", title="AI Job Search Agent", link="WORKFLOW",
+         flow=["SERPAPI JOBS", "BATCH ×5", "LLM SCORE 1-10", "DAILY DIGEST"],
+         result="One daily email of only the listings worth applying to",
+         stack=["n8n", "SerpApi", "Groq", "Gmail"]),
+    dict(cat="AUTOMATION", title="Daily LeetCode Agent", link="CODE",
+         flow=["DAILY + TOPIC", "LLM SOLUTION", "SUBMIT / JUDGE", "SELF-CORRECT ×5"],
+         result="Runs unattended once a day and tracks streak, success rate and attempts to accept",
+         stack=["Python", "Claude Code CLI"]),
+]
+
+
+def work_card(i, p):
+    CW, CH, pc = 430, 304, 26
+    inner = CW - pc * 2
+    alt = f"{i + 1:02d}, {p['cat']}: {p['title']}. " + (
+        f"{''.join(p['stat'])} {p['caption']}. " if "stat" in p else " → ".join(p["flow"]) + ". "
+    ) + p["result"] + "."
+    s = Svg(CW, CH, alt)
+    glows = [(0.9, 0.0), (0.1, 0.0), (0.95, 1.0), (0.05, 1.0), (0.9, 0.1), (0.1, 1.0)]
+    s.card(rx=18, glow=glows[i % len(glows)])
+    rise_css(s, 10)
+
+    # top row: index, category, where the link goes
+    s.add(
+        s.text(MONO, f"{i + 1:02d}", pc, 40, 11, TEAL, ls=1.5),
+        s.text(MONO, p["cat"], pc + 30, 40, 10, PAPER, ls=1.5, attrs='fill-opacity=".5"'),
+    )
+    lw = MONO.width(p["link"], 10, 1.5) - 1.5
+    s.add(
+        s.text(MONO, p["link"], CW - pc - 14 - lw, 40, 10, TEAL, ls=1.5),
+        arrow(CW - pc - 8, 32, 8, TEAL, 1.3),
+    )
+    tsize = min(27.0, 27.0 * inner / DISPLAY.width(p["title"], 27))
+    s.add(s.text(DISPLAY, p["title"], pc, 82, tsize, PAPER, attrs='class="rise" style="animation-delay:.1s"'))
+
+    if "stat" in p:
+        pre, n, suf = p["stat"]
+        size, base = 64, 164
+        x = pc
+        parts = ['<g class="rise" style="animation-delay:.2s">']
+        for ch in pre:
+            face = DISPLAY if ord(ch) in DISPLAY.cmap else DISPLAY_EXT
+            s.use_chars(face, ch)
+            parts.append(f'<text x="{num(x)}" y="{base}" font-family="{DISPLAY.family},{DISPLAY_EXT.family}" font-size="{size}" fill="{PAPER}">{escape(ch)}</text>')
+            x += face.width(ch, size) + 2
+        parts.append(s.text(DISPLAY, n, x, base, size, PAPER))
+        x += DISPLAY.width(n, size) + 1
+        parts.append(s.text(DISPLAY, suf, x, base, size, TEAL))
+        parts.append("</g>")
+        s.add(*parts, s.text(MONO, p["caption"].upper(), pc, base + 24, 9.5, PAPER, ls=1.1,
+                             attrs='fill-opacity=".55" class="rise" style="animation-delay:.35s"'))
+    else:
+        # the pipeline, with a pulse running through it
+        fsize, fls, chip_h, gap, arr = 9.5, 1.0, 26, 7, 12
+        chips, x, y = [], pc, 112
+        for label in p["flow"]:
+            w = MONO.width(label, fsize, fls) - fls + 20
+            need = w if not chips or chips[-1][1] != y else arr + gap * 2 + w
+            if chips and x + need > CW - pc:
+                # wrap, and lead the new line with an arrow so the flow reads on
+                x, y = pc - gap, y + chip_h + 12
+                need = arr + gap * 2 + w
+            cx = x + (need - w)
+            chips.append((cx, y, w, label, x if need != w else None))
+            x = cx + w
+        n = len(chips)
+        step = 0.5
+        D = n * step + 1.6
+        for k, (cx, cy, w, label, ax) in enumerate(chips):
+            a0 = (k * step) / D
+            a1 = min(0.999, (k * step + 0.25) / D)
+            a2 = min(0.9995, (k * step + 0.9) / D)
+            flash = f'values="0;0;1;0;0" keyTimes="0;{a0:.3f};{a1:.3f};{a2:.3f};1" dur="{num(D)}s" begin=".8s" repeatCount="indefinite"'
+            parts = [
+                f'<g class="rise" style="animation-delay:{num(0.2 + k * 0.08)}s">',
+                f'<rect x="{num(cx)}" y="{cy}" width="{num(w)}" height="{chip_h}" rx="{chip_h / 2}" stroke="{PAPER}" stroke-opacity=".18"/>',
+                f'<rect x="{num(cx)}" y="{cy}" width="{num(w)}" height="{chip_h}" rx="{chip_h / 2}" fill="{TEAL}" fill-opacity=".12" stroke="{TEAL}" opacity="0"><animate attributeName="opacity" {flash}/></rect>',
+                s.text(MONO, label, cx + 10, cy + 16.6, fsize, PAPER, ls=fls, attrs='fill-opacity=".85"'),
+            ]
+            if ax is not None:
+                mx = ax + gap
+                my = cy + chip_h / 2
+                parts.append(
+                    f'<path d="M{num(mx)} {num(my)}H{num(mx + arr)}M{num(mx + arr - 3.5)} {num(my - 3.5)}L{num(mx + arr)} {num(my)}L{num(mx + arr - 3.5)} {num(my + 3.5)}" '
+                    f'stroke="{TEAL}" stroke-opacity=".7" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>'
+                )
+            parts.append("</g>")
+            s.add(*parts)
+
+    # the outcome and the stack
+    s.add(f'<line x1="{pc}" y1="206" x2="{CW - pc}" y2="206" stroke="{PAPER}" stroke-opacity=".08"/>')
+    lines = wrap(BODY, p["result"], 14, inner)[:2]
+    s.use_chars(BODY, p["result"])
+    s.add(*[
+        f'<text x="{pc}" y="{230 + j * 20}" font-family="{BODY.family}" font-size="14" fill="{PAPER}" fill-opacity=".74" class="rise" style="animation-delay:.4s">{escape(line)}</text>'
+        for j, line in enumerate(lines)
+    ])
+    s.add(s.text(MONO, " · ".join(p["stack"]).upper(), pc, CH - 24, 9.5, TEAL, ls=1.1, attrs='fill-opacity=".85"'))
+    s.save(f"work-{i + 1}.svg")
+
+
+def work():
+    for i, p in enumerate(WORK):
+        work_card(i, p)
 
 
 # ── Now playing ──────────────────────────────────────────────────────────────
@@ -1233,7 +1416,9 @@ def main():
     who()
     interests()
     skills()
-    quote()
+    work()
+    for theme in THEMES:
+        quote(theme)
     now_playing()
     for theme in THEMES:
         neko(theme)
