@@ -50,7 +50,9 @@
 
 <a href="https://open.spotify.com/user/3176ufzakybufuchqpu2dfmxjvnq"><img src="assets/now-playing.svg" width="100%" alt="Now Playing: Dil Toh Bacha Hai by Rahat Fateh Ali Khan. “Music is the universal language of mankind.”"></a>
 
+<a href="https://arshchatrath.me">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/neko-dark.svg">
-  <img src="assets/neko-light.svg" width="100%" alt="Thanks for stopping by! Do you like cats? The cat from arshchatrath.me runs over and falls asleep on the switch.">
+  <img src="assets/neko-light.svg" width="100%" alt="Thanks for stopping by! Do you like cats? The cat from arshchatrath.me wakes up when the switch turns on and chases the cursor. Click to meet it on the site.">
 </picture>
+</a>

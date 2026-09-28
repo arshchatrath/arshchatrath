@@ -646,34 +646,211 @@ def rich_lines(s, text, bold, size, max_w):
     return out
 
 
+# ── Line illustrations ───────────────────────────────────────────────────────
+#
+# Drawn on a 48-unit grid in the site's two inks: teal for the part that
+# matters, paper for the rest. Strokes draw themselves in (the engraving
+# again), then each one keeps one small idle motion.
+
+
+def _stroke(d, color=TEAL, op=1.0, extra=""):
+    o = f' stroke-opacity="{op}"' if op != 1 else ""
+    return f'<path class="draw" pathLength="1" d="{d}" stroke="{color}"{o}{extra}/>'
+
+
+def _circle_d(cx, cy, r):
+    return f"M{num(cx - r)} {num(cy)}a{num(r)} {num(r)} 0 1 0 {num(2 * r)} 0a{num(r)} {num(r)} 0 1 0 {num(-2 * r)} 0"
+
+
+def _dot(cx, cy, r, color=TEAL, op=1.0, extra=""):
+    o = f' fill-opacity="{op}"' if op != 1 else ""
+    return f'<circle class="pop" cx="{num(cx)}" cy="{num(cy)}" r="{num(r)}" fill="{color}"{o}{extra}/>'
+
+
+def icon_cap(t):
+    """Mortarboard, for Thapar."""
+    return [
+        _stroke("M4 19L24 10L44 19L24 28Z"),
+        _stroke("M12 23V31Q24 38 36 31V23", PAPER, 0.6),
+        "<g>",
+        _stroke("M44 19V30"),
+        _dot(44, 32, 1.9),
+        f'<animateTransform attributeName="transform" type="rotate" values="0 44 19;9 44 19;-6 44 19;3 44 19;0 44 19" '
+        f'dur="3.2s" begin="{num(t)}s" repeatCount="indefinite"/>',
+        "</g>",
+    ]
+
+
+def icon_ticket(t):
+    """An event ticket with a growth line: Talkeys, product and growth."""
+    return [
+        _stroke("M9 14H39A4 4 0 0 1 43 18V21A3 3 0 0 0 43 27V30A4 4 0 0 1 39 34H9A4 4 0 0 1 5 30V27A3 3 0 0 0 5 21V18A4 4 0 0 1 9 14Z", PAPER, 0.6),
+        f'<path class="pop" d="M15 17V31" stroke="{PAPER}" stroke-opacity=".4" stroke-dasharray="1.5 2.6"/>',
+        _stroke("M20 29L26 24L30 27L37 20"),
+        _stroke("M33 20H37V24"),
+        f'<circle r="1.6" fill="{PAPER}" opacity="0"><set attributeName="opacity" to=".9" begin="{num(t)}s"/>'
+        f'<animateMotion path="M20 29L26 24L30 27L37 20" dur="2.4s" begin="{num(t)}s" repeatCount="indefinite"/></circle>',
+    ]
+
+
+def icon_bezier(t):
+    """A pen-tool curve with its handles: design, brought to life."""
+    return [
+        _stroke("M8 36L15 13", PAPER, 0.45),
+        _stroke("M40 36L33 13", PAPER, 0.45),
+        _stroke("M8 36C15 13 33 13 40 36"),
+        _stroke(_circle_d(15, 13, 2.2), PAPER, 0.75),
+        _stroke(_circle_d(33, 13, 2.2), PAPER, 0.75),
+        f'<path class="pop" d="M5.5 33.5h5v5h-5Z" fill="{INK}" stroke="{TEAL}"/>',
+        f'<path class="pop" d="M37.5 33.5h5v5h-5Z" fill="{INK}" stroke="{TEAL}"/>',
+        # a point riding the curve, like a playhead
+        f'<circle r="1.7" fill="{PAPER}" opacity="0"><set attributeName="opacity" to=".9" begin="{num(t)}s"/>'
+        f'<animateMotion path="M8 36C15 13 33 13 40 36" dur="3s" begin="{num(t)}s" repeatCount="indefinite" '
+        'keyPoints="0;1;0" keyTimes="0;.5;1" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1"/></circle>',
+    ]
+
+
+def icon_compass(t):
+    """A compass whose needle keeps searching: exploring."""
+    return [
+        _stroke(_circle_d(24, 24, 17), PAPER, 0.5),
+        _stroke("M24 4.5V8M24 40V43.5M4.5 24H8M40 24H43.5", PAPER, 0.5),
+        "<g>",
+        f'<path class="pop" d="M24 11.5L28 24H20Z" fill="{TEAL}"/>',
+        _stroke("M24 36.5L28 24H20Z", PAPER, 0.6),
+        f'<animateTransform attributeName="transform" type="rotate" values="-28 24 24;18 24 24;-9 24 24;6 24 24;-28 24 24" '
+        f'dur="7s" begin="{num(t)}s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>',
+        "</g>",
+        _dot(24, 24, 1.7, INK),
+    ]
+
+
+def icon_roadmap(t):
+    """A roadmap to a flag: product design and strategy."""
+    road = "M6 40C18 40 12 25 24 25C36 25 30 12 40 12"
+    return [
+        _stroke(road, PAPER, 0.55),
+        _dot(6, 40, 2.6),
+        _stroke(_circle_d(24, 25, 3.2)),
+        _stroke("M40 13V2.5"),
+        f'<path class="draw" pathLength="1" d="M40 2.8H47L44.6 5.6L47 8.4H40Z" stroke="{TEAL}" fill="{TEAL}" fill-opacity=".22"/>',
+        f'<circle r="1.7" fill="{PAPER}" opacity="0"><set attributeName="opacity" to=".9" begin="{num(t)}s"/>'
+        f'<animateMotion path="{road}" dur="3.6s" begin="{num(t)}s" repeatCount="indefinite"/></circle>',
+    ]
+
+
+def icon_browser(t):
+    """A browser window with code in it: UI/UX and frontend."""
+    return [
+        _stroke("M8 8H40A4 4 0 0 1 44 12V36A4 4 0 0 1 40 40H8A4 4 0 0 1 4 36V12A4 4 0 0 1 8 8Z", PAPER, 0.55),
+        _stroke("M4 15H44", PAPER, 0.4),
+        _dot(8.6, 11.6, 1.1, PAPER, 0.6),
+        _dot(12.4, 11.6, 1.1, PAPER, 0.6),
+        _dot(16.2, 11.6, 1.1, PAPER, 0.6),
+        _stroke("M17 22L12 27.5L17 33"),
+        _stroke("M31 22L36 27.5L31 33"),
+        _stroke("M26.5 20L21.5 35"),
+        # a blinking caret
+        f'<rect x="38" y="33.5" width="1.6" height="4" fill="{PAPER}" opacity="0">'
+        f'<animate attributeName="opacity" values="0;.8;.8;0" keyTimes="0;.05;.5;.55" dur="1.1s" begin="{num(t)}s" repeatCount="indefinite"/></rect>',
+    ]
+
+
+def icon_network(t):
+    """People connected around a centre: community building and edtech."""
+    pts = [(24 + 16 * math.cos(math.radians(a)), 24 + 16 * math.sin(math.radians(a))) for a in range(-90, 270, 60)]
+    links = "".join(f"M24 24L{num(x)} {num(y)}" for x, y in pts)
+    rim = "M" + "L".join(f"{num(x)} {num(y)}" for x, y in pts) + "Z"
+    out = [_stroke(rim, PAPER, 0.18), _stroke(links, PAPER, 0.45)]
+    for k, (x, y) in enumerate(pts):
+        out.append(
+            f'<path class="draw" pathLength="1" d="{_circle_d(x, y, 3)}" stroke="{TEAL}" fill="{INK}">'
+            f'<animate attributeName="stroke-opacity" values="1;.3;1" dur="2.4s" begin="{num(t + k * 0.4)}s" repeatCount="indefinite"/></path>'
+        )
+    out.append(_dot(24, 24, 4.4))
+    return out
+
+
+def icon_megaphone(t):
+    """A megaphone: marketing."""
+    waves = []
+    for k, d in enumerate(["M38 19Q41.5 24 38 29", "M41.5 14.5Q47 24 41.5 33.5"]):
+        waves.append(
+            _stroke(d, extra="").replace(
+                "/>",
+                f'><animate attributeName="stroke-opacity" values="1;.2;1" dur="1.8s" begin="{num(t + k * 0.3)}s" repeatCount="indefinite"/></path>',
+            )
+        )
+    return [
+        _stroke("M7 20H14L33 11V37L14 28H7A2 2 0 0 1 5 26V22A2 2 0 0 1 7 20Z", PAPER, 0.6),
+        _stroke("M14 28L17 37H21L19 29.5", PAPER, 0.6),
+        *waves,
+    ]
+
+
+def illustration_css(s):
+    s.css.append(
+        "@keyframes draw{from{stroke-dashoffset:1}}"
+        ".draw{stroke-dasharray:1;animation:draw 1.6s cubic-bezier(.65,0,.35,1) both}"
+        f"@keyframes pop{{from{{opacity:0;transform:scale(.3)}}}}"
+        f".pop{{transform-box:fill-box;transform-origin:center;animation:pop .7s {EASE_OUT} both}}"
+    )
+
+
+def place(icon, x, y, size, idle_at, stroke_px, cls):
+    """An illustration at (x, y), `size` px square; its idle motion starts at `idle_at`."""
+    k = size / 48
+    return (
+        f'<g class="{cls}" transform="translate({num(x)} {num(y)}) scale({num(k)})" stroke-width="{num(stroke_px / k)}" '
+        f'stroke-linecap="round" stroke-linejoin="round" fill="none">{"".join(icon(idle_at))}</g>'
+    )
+
+
+WHO_ICONS = [icon_cap, icon_ticket, icon_bezier, icon_compass]
+INTEREST_ICONS = [icon_roadmap, icon_browser, icon_network, icon_megaphone]
+
+
 def who():
-    size, lh, gap = 18, 27, 40
-    tx = PAD + 58
+    size, lh, gap, plate = 18, 27, 30, 54
+    px = PAD + 40
+    tx = px + plate + 22
     s = Svg(W, 10, " ".join(t + "." for t, _ in WHO))  # height set once the text is wrapped
     rows = [rich_lines(s, t, b, size, W - tx - PAD) for t, b in WHO]
-    top = 50
-    H = top + sum(len(r) * lh for r in rows) + gap * (len(rows) - 1) + 18
+    # a row is as tall as its text or its plate, whichever is taller
+    heights = [max(plate, (len(r) - 1) * lh + 14) for r in rows]
+    top = 30
+    H = top * 2 + sum(heights) + gap * (len(rows) - 1)
     s.h = H
     s.card(glow=(0.95, 1.0))
     rise_css(s)
+    illustration_css(s)
     y = top
-    for i, lines in enumerate(rows):
-        delay = 0.15 + i * 0.12
-        parts = [f'<g class="rise" style="animation-delay:{num(delay)}s">', s.text(MONO, f"{i + 1:02d}", PAD, y, 12, TEAL, ls=1.5)]
+    for i, (lines, h) in enumerate(zip(rows, heights)):
+        delay = 0.15 + i * 0.14
+        text_h = (len(lines) - 1) * lh + 14
+        base = y + (h - text_h) / 2 + 13.5
+        py = y + (h - plate) / 2
+        parts = [
+            f'<g class="rise" style="animation-delay:{num(delay)}s">',
+            s.text(MONO, f"{i + 1:02d}", PAD, py + plate / 2 + 4, 12, TEAL, ls=1.5),
+            f'<rect x="{px + 0.5}" y="{num(py + 0.5)}" width="{plate - 1}" height="{plate - 1}" rx="12" fill="{PAPER}" fill-opacity=".03" stroke="{PAPER}" stroke-opacity=".1"/>',
+        ]
         for j, spans in enumerate(lines):
-            parts.append(f'<text x="{tx}" y="{y + j * lh}" font-size="{size}" fill="{PAPER}">{spans}</text>')
+            parts.append(f'<text x="{tx}" y="{num(base + j * lh)}" font-size="{size}" fill="{PAPER}">{spans}</text>')
         parts.append("</g>")
         s.add(*parts)
-        y += len(lines) * lh
+        s.add(place(WHO_ICONS[i], px + 10, py + 10, plate - 20, delay + 1.9, 1.4, f"d{i}"))
+        s.css.append(f".d{i} .draw,.d{i} .pop{{animation-delay:{num(delay + 0.25)}s}}")
+        y += h
         if i < len(rows) - 1:
-            ly = y - lh + gap / 2 + 8
-            s.add(f'<line class="grow" x1="{PAD}" y1="{num(ly)}" x2="{W - PAD}" y2="{num(ly)}" stroke="{PAPER}" stroke-opacity=".09" style="animation-delay:{num(delay + 0.1)}s"/>')
+            ly = y + gap / 2
+            s.add(f'<line class="grow" x1="{PAD}" y1="{num(ly)}" x2="{W - PAD}" y2="{num(ly)}" stroke="{PAPER}" stroke-opacity=".08" style="animation-delay:{num(delay + 0.1)}s"/>')
             y += gap
     s.save("who.svg")
 
 
 def interests():
-    pad, g, th = 24, 12, 104
+    pad, g, th, art = 24, 12, 142, 78
     tw = (W - pad * 2 - g) / 2
     inner = tw - 48
     size = min(28.0, 28.0 * inner / max(DISPLAY.width(t, 28) for t in INTERESTS))
@@ -681,17 +858,22 @@ def interests():
     s = Svg(W, H, "Interests & Focus: " + ", ".join(INTERESTS) + ".")
     s.card(glow=(0.5, 1.1))
     rise_css(s)
+    illustration_css(s)
     for i, name in enumerate(INTERESTS):
         x = pad + (i % 2) * (tw + g)
         y = pad + (i // 2) * (th + g)
+        delay = 0.15 + i * 0.12
+        ax, ay = x + tw - 22 - art, y + 12
         s.add(
-            f'<g class="rise" style="animation-delay:{num(0.15 + i * 0.1)}s">',
+            f'<g class="rise" style="animation-delay:{num(delay)}s">',
             f'<rect x="{num(x + 0.5)}" y="{y + 0.5}" width="{num(tw - 1)}" height="{th - 1}" rx="14" fill="{PAPER}" fill-opacity=".025" stroke="{PAPER}" stroke-opacity=".1"/>',
             s.text(MONO, f"{i + 1:02d}", x + 24, y + 34, 12, TEAL, ls=1.5),
-            f'<line x1="{num(x + 52)}" y1="{y + 30}" x2="{num(x + tw - 24)}" y2="{y + 30}" stroke="{PAPER}" stroke-opacity=".08"/>',
-            s.text(DISPLAY, name, x + 24, y + 78, size, PAPER),
+            f'<line x1="{num(x + 52)}" y1="{y + 30}" x2="{num(ax - 18)}" y2="{y + 30}" stroke="{PAPER}" stroke-opacity=".08"/>',
+            s.text(DISPLAY, name, x + 24, y + th - 26, size, PAPER),
             "</g>",
+            place(INTEREST_ICONS[i], ax, ay, art, delay + 1.9, 1.6, f"d{i}"),
         )
+        s.css.append(f".d{i} .draw,.d{i} .pop{{animation-delay:{num(delay + 0.3)}s}}")
     s.save("interests.svg")
 
 
@@ -875,6 +1057,7 @@ def now_playing():
 
 # Frames on the oneko sheet (column, row), from Neko.tsx.
 RUN_E = [(3, 0), (3, 1)]
+RUN_W = [(4, 2), (4, 3)]
 ALERT = (7, 3)
 SCRATCH = [(5, 0), (6, 0), (7, 0)]
 TIRED = (3, 2)
@@ -896,11 +1079,16 @@ def sprite_uri(theme):
 
 def neko(theme):
     """
-    The switch from the site's corner, flipped off; the cat runs in from the
-    left and curls up on it, the way it does on the site when you turn it off.
+    The site's "Do you like cats?" switch, acted out on a loop, since nothing
+    in a README can be clicked: the cursor switches it on, the cat wakes and
+    chases the cursor, the cursor switches it off, and the cat walks back and
+    curls up on the switch. The README links this strip to the real thing.
     """
-    H = 96
-    s = Svg(W, H, "Do you like cats? The cat from arshchatrath.me runs over and falls asleep on the switch.")
+    H, T = 116, 20.0
+    cat = 64
+    teal = TEAL if theme == "dark" else "#0086a0"
+    s = Svg(W, H, "Thanks for stopping by! Do you like cats? The cat from arshchatrath.me wakes up when the switch turns on and chases the cursor.")
+
     size, ls = 12, 0.7
     label = "Do you like cats?"
     tw = MONO.width(label, size, ls)
@@ -908,61 +1096,120 @@ def neko(theme):
     bx, by = W - bw - 48, H - bh - 4
     kx0 = bx + 16 + tw + 12  # toggle track
     ty = by + (bh - 18) / 2
-    flip = 0.7
+    knob_off, knob_on, knob_y = kx0 + 9, kx0 + 23, ty + 9
+    home = kx0 + 16 - cat / 2
+    cy = by - cat + 10
+    ground = cy + 38  # where the cursor hovers while the cat chases it
+
+    def track(keys, fmt=num):
+        """(t, value) pairs over one loop -> SMIL values/keyTimes."""
+        keys = sorted(keys, key=lambda k: k[0])
+        return (
+            ";".join(fmt(v) for _, v in keys),
+            ";".join(f"{t / T:.4f}" for t, _ in keys),
+        )
+
+    def loop(attr, keys, fmt=num, calc="linear", extra=""):
+        values, times = track(keys, fmt)
+        return (
+            f'<animate attributeName="{attr}" values="{values}" keyTimes="{times}" calcMode="{calc}" '
+            f'dur="{num(T)}s" repeatCount="indefinite"{extra}/>'
+        )
+
+    def move(keys):
+        values, times = track(keys, fmt=lambda v: f"{num(v[0])} {num(v[1])}")
+        return (
+            f'<animateTransform attributeName="transform" type="translate" values="{values}" keyTimes="{times}" '
+            f'dur="{num(T)}s" repeatCount="indefinite"/>'
+        )
+
+    # Clicks, and what they switch.
+    click_on, click_off = 2.72, 10.87
+
+    def switched(on_value, off_value):
+        return [(0, off_value), (click_on + 0.03, off_value), (click_on + 0.33, on_value),
+                (click_off + 0.03, on_value), (click_off + 0.33, off_value), (T, off_value)]
+
     s.add(
         f'<rect x="{num(bx)}" y="{by}" width="{num(bw)}" height="{bh}" rx="{bh / 2}" fill="#0b0b0b" fill-opacity=".92" stroke="#fff" stroke-opacity=".1"/>',
         s.text(MONO, label, bx + 16, by + 22.5, size, PAPER, ls=ls, attrs='fill-opacity=".75"'),
-        f'<rect x="{num(kx0)}" y="{num(ty)}" width="32" height="18" rx="9" fill="{TEAL}">'
-        f'<animate attributeName="fill" to="#3a3a3a" begin="{flip}s" dur=".3s" fill="freeze"/></rect>',
-        f'<circle cx="{num(kx0 + 23)}" cy="{num(ty + 9)}" r="7" fill="{PAPER}">'
-        f'<animate attributeName="cx" to="{num(kx0 + 9)}" begin="{flip}s" dur=".3s" fill="freeze"/></circle>',
+        f'<rect x="{num(kx0)}" y="{num(ty)}" width="32" height="18" rx="9" fill="#3a3a3a">'
+        + loop("fill", switched(TEAL, "#3a3a3a"), fmt=str) + "</rect>",
+        f'<circle cx="{num(knob_off)}" cy="{num(knob_y)}" r="7" fill="{PAPER}">'
+        + loop("cx", switched(knob_on, knob_off)) + "</circle>",
         # the old README's sign-off, on the same line as the switch
         s.text(MONO, "Thanks for stopping by!", 0, by + 22.5, 12, PAPER if theme == "dark" else INK, ls=0.7,
                attrs='fill-opacity=".6"'),
     )
 
-    # Timeline: run in, stop, alert, wash, get tired, sleep (forever).
-    frames, t = [], 0.0
-    cat = 64
-    end_x = kx0 + 16 - cat / 2
-    start_x = -cat - 10
-    start = flip + 0.5
-    run_speed = 170.0  # px per second
-    run_t = (end_x - start_x) / run_speed
-    tick = 0.1
-    steps = int(run_t / tick)
-    for i in range(steps):
-        frames.append((t, RUN_E[i % 2]))
-        t += tick
-    arrive = t
-    for f, d in [(IDLE, 0.35), (ALERT, 0.45)] + [(SCRATCH[i % 3], 0.14) for i in range(9)] + [(IDLE, 0.3), (TIRED, 1.0)]:
-        frames.append((t, f))
-        t += d
-    total = t
-    times = ";".join(f"{ft / total:.4f}" for ft, _ in frames)
-    xs = ";".join(str(-c * cat) for _, (c, r) in frames)
-    ys = ";".join(str(-r * cat) for _, (c, r) in frames)
-    cy = by - cat + 10
+    # The cat: where it is, and which frame it shows.
+    at1 = 300 + 36 - cat / 2   # stops just right of the cursor
+    at2 = 500 - 36 - cat / 2   # then just left of it
+    frames = []
 
-    sleep_xs = ";".join(str(-c * cat) for c, r in SLEEP)
-    sleep_ys = ";".join(str(-r * cat) for c, r in SLEEP)
+    def act(frame_list, t0, t1, step):
+        t, k = t0, 0
+        while t < t1 - 1e-6:
+            frames.append((t, frame_list[k % len(frame_list)]))
+            t += step
+            k += 1
+
+    act(SLEEP, 0, 3.1, 0.7)
+    act([ALERT], 3.1, 3.6, 1)
+    act(RUN_W, 3.6, 6.2, 0.1)
+    act([IDLE], 6.2, 6.9, 1)
+    act(RUN_E, 6.9, 8.2, 0.1)
+    act(SCRATCH, 8.2, 9.6, 0.14)
+    act([IDLE], 9.6, click_off + 0.03, 1)
+    act([ALERT], click_off + 0.03, 11.3, 1)
+    act(RUN_E, 11.3, 13.3, 0.1)
+    act([IDLE], 13.3, 13.6, 1)
+    act([TIRED], 13.6, 14.6, 1)
+    act(SLEEP, 14.6, T, 0.7)
+    fx = [(t, -f[0] * cat) for t, f in frames]
+    fy = [(t, -f[1] * cat) for t, f in frames]
+    pos = [(0, home), (3.6, home), (6.2, at1), (6.9, at1), (8.2, at2), (11.3, at2), (13.3, home), (T, home)]
+
     glow = ' filter="url(#glow)"' if theme == "dark" else ""
     if theme == "dark":
         s.defs.append('<filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#00B4D8" flood-opacity=".5"/></filter>')
     # A clip, not a nested <svg>: Chrome gives nested <svg>s their own clock.
     s.defs.append(f'<clipPath id="frame"><rect width="{cat}" height="{cat}"/></clipPath>')
     s.add(
-        f'<g transform="translate({num(start_x)} {num(cy)})"{glow}>',
-        f'<animateTransform attributeName="transform" type="translate" from="{num(start_x)} {num(cy)}" to="{num(end_x)} {num(cy)}" '
-        f'begin="{start}s" dur="{num(arrive)}s" fill="freeze"/>',
+        f'<g transform="translate({num(home)} {num(cy)})"{glow}>',
+        move([(t, (x, cy)) for t, x in pos]),
         '<g clip-path="url(#frame)">',
-        f'<image href="{sprite_uri(theme)}" width="{cat * 8}" height="{cat * 4}" x="{-RUN_E[0][0] * cat}" y="0" style="image-rendering:pixelated">',
-        f'<animate id="wake" attributeName="x" values="{xs}" keyTimes="{times}" calcMode="discrete" begin="{start}s" dur="{num(total)}s" fill="freeze"/>',
-        f'<animate attributeName="y" values="{ys}" keyTimes="{times}" calcMode="discrete" begin="{start}s" dur="{num(total)}s" fill="freeze"/>',
-        # asleep for good (the sleeping frames draw their own zZ)
-        f'<animate attributeName="x" values="{sleep_xs}" calcMode="discrete" begin="wake.end" dur="1.6s" repeatCount="indefinite"/>',
-        f'<animate attributeName="y" values="{sleep_ys}" calcMode="discrete" begin="wake.end" dur="1.6s" repeatCount="indefinite"/>',
+        f'<image href="{sprite_uri(theme)}" width="{cat * 8}" height="{cat * 4}" x="{fx[0][1]}" y="{fy[0][1]}" style="image-rendering:pixelated">',
+        loop("x", fx, calc="discrete"),
+        loop("y", fy, calc="discrete"),
         "</image></g></g>",
+    )
+
+    # The cursor: the site's teal ring and dot.
+    path = [
+        (0, (-40, ground)), (1.0, (-40, ground)), (2.5, (knob_off, knob_y)), (3.3, (knob_off, knob_y)),
+        (4.5, (300, ground - 2)), (6.4, (300, ground - 2)), (7.3, (500, ground + 2)), (9.2, (500, ground + 2)),
+        (10.6, (knob_on, knob_y)), (11.2, (knob_on, knob_y)), (12.0, (W + 40, ground - 20)), (T, (W + 40, ground - 20)),
+    ]
+    ring = [(0, 11), (click_on - 0.12, 11), (click_on, 6.5), (click_on + 0.2, 11),
+            (click_off - 0.12, 11), (click_off, 6.5), (click_off + 0.2, 11), (T, 11)]
+
+    def ripple(t0):
+        return [(0, 0), (t0, 0), (t0 + 0.01, 0.7), (t0 + 0.6, 0), (T, 0)]
+
+    def ripple_r(t0):
+        return [(0, 8), (t0, 8), (t0 + 0.6, 26), (T, 26)]
+
+    s.add(
+        f'<g opacity="0">',
+        loop("opacity", [(0, 0), (1.0, 0), (1.3, 1), (11.7, 1), (12.0, 0), (T, 0)]),
+        "<g>",
+        move(path),
+        f'<circle r="8" stroke="{teal}" stroke-width="1.2" opacity="0">{loop("r", ripple_r(click_on))}{loop("opacity", ripple(click_on))}</circle>',
+        f'<circle r="8" stroke="{teal}" stroke-width="1.2" opacity="0">{loop("r", ripple_r(click_off))}{loop("opacity", ripple(click_off))}</circle>',
+        f'<circle r="11" stroke="{teal}" stroke-width="1.5">{loop("r", ring)}</circle>',
+        f'<circle r="2.6" fill="{teal}"/>',
+        "</g></g>",
     )
     s.save(f"neko-{theme}.svg")
 
