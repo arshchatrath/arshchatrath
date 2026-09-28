@@ -59,6 +59,7 @@ class Face:
         if axes:
             font = instantiateVariableFont(font, axes)
         font.flavor = None
+        font.recalcTimestamp = False
         buf = io.BytesIO()
         font.save(buf)
         self.data = buf.getvalue()
@@ -91,6 +92,7 @@ class Face:
         sub.subset(font)
         out = io.BytesIO()
         font.flavor = "woff2"
+        font.recalcTimestamp = False  # same input, same bytes: rebuilds don't touch untouched SVGs
         font.save(out)
         return base64.b64encode(out.getvalue()).decode()
 
