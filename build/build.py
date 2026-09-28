@@ -974,75 +974,6 @@ def skills():
 # ── The quote ────────────────────────────────────────────────────────────────
 
 
-def quote(theme):
-    """
-    The one section without a card: the quote set big, straight on the page,
-    so the README has a moment that isn't another box.
-    """
-    t = THEMES[theme]
-    first = "Design is not just what it looks like and feels like."
-    second = "Design is how it works."
-    size, lh = 46, 58
-    x0, max_w = 92, W - 92
-    words = [(w, t["fg"]) for w in first.split()] + [(w, t["teal"]) for w in second.split()]
-    lines, cur, cur_w = [], [], 0.0
-    space = DISPLAY.width(" ", size)
-    for w, color in words:
-        ww = DISPLAY.width(w, size)
-        # each sentence starts its own line
-        if cur and (cur_w + space + ww > max_w or color != cur[-1][1]):
-            lines.append(cur)
-            cur, cur_w = [], 0.0
-        cur.append((w, color, ww))
-        cur_w += (space if len(cur) > 1 else 0) + ww
-    lines.append(cur)
-    top = 80
-    H = top + lh * (len(lines) - 1) + 86
-    s = Svg(W, H, f"“{first} {second}” Steve Jobs")
-    s.css.append(
-        f"@keyframes rise{{from{{transform:translateY({size}px)}}to{{transform:none}}}}"
-        f".w{{animation:rise 1.1s {EASE_OUT} both}}"
-        "@keyframes draw{from{stroke-dashoffset:1}}"
-        ".draw{stroke-dasharray:1;animation:draw 1s cubic-bezier(.65,0,.35,1) both}"
-    )
-    s.add(s.text(DISPLAY, "“", 0, 108, 124, t["teal"]))
-    k = 0
-    for li, line in enumerate(lines):
-        base = top + li * lh
-        s.defs.append(f'<clipPath id="l{li}"><rect x="0" y="{num(base - size)}" width="{W}" height="{num(size * 1.32)}"/></clipPath>')
-        x = x0
-        parts = [f'<g clip-path="url(#l{li})">']
-        for w, color, ww in line:
-            parts.append(s.text(DISPLAY, w, x, base, size, color, attrs=f'class="w" style="animation-delay:{num(0.2 + k * 0.06)}s"'))
-            x += ww + space
-            k += 1
-        parts.append("</g>")
-        s.add(*parts)
-    # a hand-drawn underline under "how it works."
-    last = lines[-1]
-    xs = [x0]
-    for _, _, ww in last:
-        xs.append(xs[-1] + ww + space)
-    ux0, ux1 = xs[2] - 2, xs[-1] - space + 4
-    uy = top + lh * (len(lines) - 1) + 14
-    span = ux1 - ux0
-    d = (
-        f"M{num(ux0)} {num(uy + 2)}"
-        f"C{num(ux0 + span * 0.3)} {num(uy - 3)} {num(ux0 + span * 0.62)} {num(uy + 3)} {num(ux1)} {num(uy - 1.5)}"
-        f"M{num(ux0 + span * 0.08)} {num(uy + 8)}C{num(ux0 + span * 0.4)} {num(uy + 4)} {num(ux0 + span * 0.7)} {num(uy + 8.5)} {num(ux1 - span * 0.12)} {num(uy + 5)}"
-    )
-    s.add(
-        f'<path class="draw" pathLength="1" d="{d}" stroke="{t["teal"]}" stroke-width="3" stroke-linecap="round" '
-        f'style="animation-delay:{num(0.35 + k * 0.06)}s"/>'
-    )
-    ay = uy + 48
-    s.add(
-        f'<line x1="{x0}" y1="{ay - 4}" x2="{x0 + 26}" y2="{ay - 4}" stroke="{t["teal"]}"/>',
-        s.text(MONO, "STEVE JOBS", x0 + 38, ay, 11, t["fg"], ls=2.2, attrs='fill-opacity=".6"'),
-    )
-    s.save(f"quote-{theme}.svg")
-
-
 # ── Selected work ────────────────────────────────────────────────────────────
 
 WORK = [
@@ -1168,7 +1099,7 @@ def work():
         work_card(i, p)
 
 
-# ── Now playing ──────────────────────────────────────────────────────────────
+# ── Let's Connect: the quote and the song ──────────────────────────────────────────────────────────────
 
 
 def cover_data_uri():
@@ -1180,62 +1111,109 @@ def cover_data_uri():
     return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
-def now_playing():
-    H = 232
-    s = Svg(W, H, "Now playing: Dil Toh Bacha Hai by Rahat Fateh Ali Khan. “Music is the universal language of mankind.”")
-    s.card(glow=(0.15, 0.5))
-    cx, cy, R = 132, H / 2, 86
+def connect():
+    """
+    Let's Connect: the quote and the song in one closing card. The record is
+    big enough to run off the card's left edge, spinning with the poster from
+    the old README as its label.
+    """
+    H = 340
+    s = Svg(W, H, "Let’s Connect. “Design is not just what it looks like and feels like. Design is how it works.” Steve Jobs. "
+                  "Now playing: Dil Toh Bacha Hai by Rahat Fateh Ali Khan. “Music is the universal language of mankind.”")
+    s.card(glow=(0.78, 0.0))
+
+    # the record
+    cx, cy, R, label = 70, H / 2, 150, 58
     grooves = "".join(
-        f'<circle cx="{cx}" cy="{num(cy)}" r="{r}" stroke="#fff" stroke-opacity="{0.035 + (r % 3) * 0.012:.3f}"/>'
-        for r in range(42, R - 2, 3)
+        f'<circle cx="{cx}" cy="{num(cy)}" r="{r}" stroke="#fff" stroke-opacity="{0.03 + (r % 4) * 0.011:.3f}"/>'
+        for r in range(label + 5, R - 2, 3)
     )
     s.defs.append(
-        f'<clipPath id="label"><circle cx="{cx}" cy="{num(cy)}" r="36"/></clipPath>'
+        f'<clipPath id="label"><circle cx="{cx}" cy="{num(cy)}" r="{label}"/></clipPath>'
         '<linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">'
-        '<stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#fff" stop-opacity=".07"/>'
-        '<stop offset=".55" stop-color="#fff" stop-opacity="0"/></linearGradient>'
+        '<stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset=".48" stop-color="#fff" stop-opacity=".08"/>'
+        '<stop offset=".56" stop-color="#fff" stop-opacity="0"/></linearGradient>'
     )
     s.css.append(
-        f"@keyframes spin{{to{{transform:rotate(360deg)}}}}"
         f".spin{{transform-origin:{cx}px {num(cy)}px;animation:spin 1.8s linear infinite}}"
+        "@keyframes spin{to{transform:rotate(360deg)}}"
         "@keyframes eq{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}"
         ".eq{transform-box:fill-box;transform-origin:50% 100%;animation:eq 1s ease-in-out infinite}"
+        f"@keyframes rise{{from{{transform:translateY(36px)}}to{{transform:none}}}}"
+        f".w{{animation:rise 1.1s {EASE_OUT} both}}"
+        "@keyframes draw{from{stroke-dashoffset:1}}"
+        ".draw{stroke-dasharray:1;animation:draw 1s cubic-bezier(.65,0,.35,1) both}"
     )
-    img = cover_data_uri()
     s.add(
-        f'<circle cx="{cx}" cy="{num(cy)}" r="{R}" fill="#111"/>',
+        '<g clip-path="url(#card)">',
+        f'<circle cx="{cx}" cy="{num(cy)}" r="{R}" fill="#0e0e0e"/>',
         '<g class="spin">',
         grooves,
-        f'<image href="{img}" x="{cx - 36}" y="{num(cy - 36)}" width="72" height="72" clip-path="url(#label)" preserveAspectRatio="xMidYMid slice"/>',
-        f'<circle cx="{cx}" cy="{num(cy)}" r="36" stroke="#000" stroke-opacity=".5"/>',
+        f'<image href="{cover_data_uri()}" x="{cx - label}" y="{num(cy - label)}" width="{label * 2}" height="{label * 2}" clip-path="url(#label)" preserveAspectRatio="xMidYMid slice"/>',
+        f'<circle cx="{cx}" cy="{num(cy)}" r="{label}" stroke="#000" stroke-opacity=".5"/>',
         "</g>",
         f'<circle cx="{cx}" cy="{num(cy)}" r="{R}" fill="url(#sheen)"/>',
-        f'<circle cx="{cx}" cy="{num(cy)}" r="3.2" fill="{INK}"/>',
-        # tonearm
-        f'<circle cx="{cx + 92}" cy="{num(cy - 72)}" r="7" fill="#1c1c1c" stroke="{PAPER}" stroke-opacity=".25"/>',
-        f'<path d="M{cx + 92} {num(cy - 72)}L{cx + 70} {num(cy + 8)}L{cx + 50} {num(cy + 24)}" stroke="{PAPER}" stroke-opacity=".45" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>',
-        f'<rect x="{cx + 42}" y="{num(cy + 18)}" width="14" height="9" rx="2" fill="{PAPER}" fill-opacity=".55" transform="rotate(-38 {cx + 49} {num(cy + 22)})"/>',
+        f'<circle cx="{cx}" cy="{num(cy)}" r="4" fill="{INK}"/>',
+        "</g>",
+        # tonearm, resting its needle in the outer grooves
+        f'<circle cx="262" cy="44" r="9" fill="#1c1c1c" stroke="{PAPER}" stroke-opacity=".25"/>',
+        f'<path d="M262 44L238 168L198 212" stroke="{PAPER}" stroke-opacity=".45" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>',
+        f'<rect x="186" y="204" width="18" height="11" rx="2.5" fill="{PAPER}" fill-opacity=".55" transform="rotate(-48 195 209.5)"/>',
     )
-    x = 272
+
+    # the quote
+    x0, qx, size, lh = 300, 342, 31, 41
+    first = "Design is not just what it looks like and feels like."
+    second = "Design is how it works."
+    space = DISPLAY.width(" ", size)
+    s.add(s.text(DISPLAY, "“", x0 - 2, 94, 72, TEAL))
+    k = 0
+    for li, (sentence, color) in enumerate([(first, PAPER), (second, TEAL)]):
+        base = 78 + li * lh
+        s.defs.append(f'<clipPath id="l{li}"><rect x="0" y="{num(base - size)}" width="{W}" height="{num(size * 1.32)}"/></clipPath>')
+        x, xs = qx, []
+        parts = [f'<g clip-path="url(#l{li})">']
+        for w in sentence.split():
+            ww = DISPLAY.width(w, size)
+            xs.append((x, ww))
+            parts.append(s.text(DISPLAY, w, x, base, size, color, attrs=f'class="w" style="animation-delay:{num(0.2 + k * 0.06)}s"'))
+            x += ww + space
+            k += 1
+        parts.append("</g>")
+        s.add(*parts)
+    # hand-drawn underline under "how it works."
+    ux0, ux1 = xs[2][0] - 2, xs[-1][0] + xs[-1][1] + 3
+    uy = 78 + lh + 11
+    span = ux1 - ux0
+    s.add(
+        f'<path class="draw" pathLength="1" d="M{num(ux0)} {num(uy + 2)}C{num(ux0 + span * 0.3)} {num(uy - 2.5)} {num(ux0 + span * 0.62)} {num(uy + 2.5)} {num(ux1)} {num(uy - 1.5)}'
+        f'M{num(ux0 + span * 0.08)} {num(uy + 7)}C{num(ux0 + span * 0.4)} {num(uy + 3.5)} {num(ux0 + span * 0.7)} {num(uy + 7.5)} {num(ux1 - span * 0.12)} {num(uy + 4.5)}" '
+        f'stroke="{TEAL}" stroke-width="2.5" stroke-linecap="round" style="animation-delay:{num(0.35 + k * 0.06)}s"/>',
+        f'<line x1="{qx}" y1="{num(uy + 30)}" x2="{qx + 22}" y2="{num(uy + 30)}" stroke="{TEAL}"/>',
+        s.text(MONO, "STEVE JOBS", qx + 32, uy + 34, 10.5, PAPER, ls=2.2, attrs='fill-opacity=".6"'),
+        f'<line x1="{x0}" y1="200" x2="{W - PAD}" y2="200" stroke="{PAPER}" stroke-opacity=".09"/>',
+    )
+
+    # now playing
     bars = "".join(
-        f'<rect class="eq" x="{x + i * 6}" y="36" width="3" height="13" rx="1" fill="{TEAL}" style="animation-duration:{d}s;animation-delay:-{i * 0.23:.2f}s"/>'
+        f'<rect class="eq" x="{x0 + i * 6}" y="221" width="3" height="13" rx="1" fill="{TEAL}" style="animation-duration:{d}s;animation-delay:-{i * 0.23:.2f}s"/>'
         for i, d in enumerate((0.9, 1.25, 0.75, 1.1))
     )
-    bar_w = W - x - PAD
+    bar_w = W - PAD - x0
     s.add(
         bars,
-        s.text(MONO, "NOW PLAYING", x + 34, 48, 11, TEAL, ls=2.2),
-        s.text(DISPLAY, "Dil Toh Bacha Hai", x, 98, 38, PAPER),
-        s.text(BODY, "by Rahat Fateh Ali Khan", x, 128, 17, PAPER, attrs='fill-opacity=".62"'),
-        f'<rect x="{x}" y="152" width="{bar_w}" height="3" rx="1.5" fill="{PAPER}" fill-opacity=".14"/>',
-        f'<rect x="{x}" y="152" width="0" height="3" rx="1.5" fill="{TEAL}">'
+        s.text(MONO, "NOW PLAYING", x0 + 34, 233, 10.5, TEAL, ls=2.2),
+        s.text(DISPLAY, "Dil Toh Bacha Hai", x0, 272, 30, PAPER),
+        s.text(BODY, "by Rahat Fateh Ali Khan", x0, 296, 15, PAPER, attrs='fill-opacity=".62"'),
+        s.text(BODY, "“Music is the universal language of mankind.”", W - PAD, 284, 14, PAPER,
+               anchor="end", attrs='fill-opacity=".5" font-style="italic"'),
+        f'<rect x="{x0}" y="314" width="{bar_w}" height="3" rx="1.5" fill="{PAPER}" fill-opacity=".14"/>',
+        f'<rect x="{x0}" y="314" width="0" height="3" rx="1.5" fill="{TEAL}">'
         f'<animate attributeName="width" from="{bar_w * 0.12:.0f}" to="{bar_w}" dur="240s" repeatCount="indefinite"/></rect>',
-        f'<circle cx="{x}" cy="153.5" r="5" fill="{PAPER}">'
-        f'<animate attributeName="cx" from="{x + bar_w * 0.12:.0f}" to="{x + bar_w}" dur="240s" repeatCount="indefinite"/></circle>',
-        s.text(BODY, "“Music is the universal language of mankind.”", x, 194, 15, PAPER,
-               attrs='fill-opacity=".5" font-style="italic"'),
+        f'<circle cx="{x0}" cy="315.5" r="5" fill="{PAPER}">'
+        f'<animate attributeName="cx" from="{x0 + bar_w * 0.12:.0f}" to="{x0 + bar_w}" dur="240s" repeatCount="indefinite"/></circle>',
     )
-    s.save("now-playing.svg")
+    s.save("connect.svg")
 
 
 # ── The cat ──────────────────────────────────────────────────────────────────
@@ -1419,9 +1397,7 @@ def main():
     interests()
     skills()
     work()
-    for theme in THEMES:
-        quote(theme)
-    now_playing()
+    connect()
     for theme in THEMES:
         neko(theme)
 

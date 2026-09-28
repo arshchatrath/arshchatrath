@@ -57,13 +57,6 @@
 
 <img src="assets/skills.svg" width="100%" alt="Languages & Concepts: C, C++, Python, SQL, HTML/CSS, OOPS, DSA, OS, DBMS. Tools & Design: Git, GitHub, VS Code, Cursor, Kiro, Vercel, Dev C++, Figma, Canva, Notion, MATLAB. AI & Automation: n8n, Workflow Automation, LLM APIs (Claude, OpenAI), AI Agents, Prompt Engineering. Product: Roadmapping, Prioritization, Stakeholder Management, User Research, Go-to-Market Strategy. Soft Skills: Leadership, Event Mgmt, Collaboration, Innovation, Communication. Currently Exploring: Product Mgmt, Scalable FE, UX Research, Community Growth, Startups.">
 
-<br><br>
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/quote-dark.svg">
-  <img src="assets/quote-light.svg" width="100%" alt="“Design is not just what it looks like and feels like. Design is how it works.” Steve Jobs">
-</picture>
-
 <br>
 
 <picture>
@@ -71,7 +64,7 @@
   <img src="assets/chapter-5-light.svg" width="100%" alt="05 / 05. Let's Connect">
 </picture>
 
-<a href="https://open.spotify.com/user/3176ufzakybufuchqpu2dfmxjvnq"><img src="assets/now-playing.svg" width="100%" alt="Now Playing: Dil Toh Bacha Hai by Rahat Fateh Ali Khan. “Music is the universal language of mankind.”"></a>
+<a href="https://open.spotify.com/user/3176ufzakybufuchqpu2dfmxjvnq"><img src="assets/connect.svg" width="100%" alt="“Design is not just what it looks like and feels like. Design is how it works.” Steve Jobs. Now Playing: Dil Toh Bacha Hai by Rahat Fateh Ali Khan. “Music is the universal language of mankind.”"></a>
 
 <a href="https://arshchatrath.me">
 <picture>
